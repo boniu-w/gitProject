@@ -1,2 +1,9 @@
 hello git
 https://github.com/boniu-w/gitProject.git
+
+echo "# gitProject" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add origin https://github.com/boniu-w/gitProject.git
+git push -u origin master
