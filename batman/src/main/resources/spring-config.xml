@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.2.xsd
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+
+	<!-- 扫描除controller包外的所有包  修改1处-->
+	<context:component-scan base-package="com.wg">
+		<!-- 忽略@Controller -->
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+<!-- 
+	mybaits +spring
+	1	配置数据库连接池
+			c3p0 、dbcp
+			
+	2 	配置mybatis
+			实体类  : 别名
+			数据源的配置
+			映射文件配置
+			分页插件配置
+			接口配置
+	3	事务管理对象配置
+	4	事务管理规则 :   事务的传播特性
+	5	AOP 
+			在规则中应用事务管理
+	 
+	 -->
+	 
+	 <!-- 1. 配置数据库连接池  要修改的有多处     &amp;serverTimezone=GMT%2B8 -->
+	<bean id="datasource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="jdbcUrl" value="jdbc:mysql://192.168.13.17:3306/wanggang?useUnicode=true&amp;characterEncoding=UTF8"/>
+        <property name="user" value="root"/>
+        <property name="password" value="123"/>
+        <property name="acquireIncrement" value="1"/>
+        <property name="initialPoolSize" value="5"/>
+        <property name="maxPoolSize" value="20"/>
+        <property name="minPoolSize" value="5"/>
+        <property name="maxStatements" value="100"/>
+        <property name="testConnectionOnCheckout" value="true"/>
+    </bean>
+	 
+	 <!-- 2 配置mybatis  修改2处-->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="datasource" />
+		<property name="mapperLocations">
+			<list>
+				<value>classpath:com/wg/dao/*.xml</value>
+			</list>
+		</property>
+		<property name="typeAliasesPackage" value="com.wg.bean" />
+		
+		<!-- mybatis 关于分页的插件配置 使用物理分页 内存分页 
+			dialect == 方言设置为你使用的数据库，插件会根据方言设置自生成对应的SQL
+		  -->
+		<property name="plugins">
+			<bean class="com.github.pagehelper.PageHelper">
+				<property name="properties">
+					<value>
+						dialect=mysql
+					</value>
+				</property>
+			</bean>
+		</property>
+	</bean>
+	 
+	 <!-- DAO接口所在包名，Spring会自动查找其下的类   修改1处-->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.wg.dao" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+	
+	<!-- 3. JDBC的事务管理  ， mybatis 基于 jdbc 开发，所以可以使用这个对象进行事务管理 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="datasource" />
+	</bean>
+	 
+	 <!-- 4. 
+		事物的传播特性 
+			\_________	要求在更高的层进行事务管理，那么需要规则。符合规则的方法，进行统一的事务管理	
+			
+			增加	add / save / insert
+			修改	update / modeify
+			删除	del / remove
+			查看	query / find / get / load
+			其他  *
+	-->
+	 
+	 <tx:advice id="advice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="add*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="save*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="insert*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="modeify*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="del*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="remove*" propagation="REQUIRED" rollback-for="java.lang.Exception"/>
+			<tx:method name="query*" propagation="NOT_SUPPORTED" read-only="true"/>
+			<tx:method name="find*" propagation="NOT_SUPPORTED" read-only="true"/>
+			<tx:method name="*" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+	 
+	 <!-- 5. 使用 AOP 让 事物的传播特性发挥作用  修改1处-->
+	<aop:config>
+		<aop:pointcut expression="execution(* com.wg.service.*.*(..))"  id="transactionAop" />
+		<aop:advisor advice-ref="advice" pointcut-ref="transactionAop" />
+	</aop:config>
+	 
+	 
+</beans>
