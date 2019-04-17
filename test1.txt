@@ -88,6 +88,8 @@ Git鼓励大量使用分支：
 
 删除分支：git branch -d <name>
 
+8. 克隆命令
+  git clone  https://github.com/boniu-w/gitProject.git
 
 
 
