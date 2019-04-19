@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft863.dao.ChapterMapper">
+    <sql id="allColumn">
+        chapterId,chapterName,chapterHref,classId
+    </sql>
+    <resultMap type="com.soft863.bean.Chapter" id="chapterColumn">
+        <id column="chapterId" property="chapterId"/>
+        <result column="chapterName" property="chapterName"/>
+        <result column="chapterHref" property="chapterHref"/>
+        <result column="classId" property="classId"/>
+        <association property="classes" javaType="com.soft863.bean.Classes">
+            <id column="classId" property="classId"/>
+            <result column="className" property="className"/>
+            <result column="classHref" property="classHref"/>
+        </association>
+    </resultMap>
+    <select id="findByClassId" resultMap="chapterColumn">
+    <!-- chapterId  chapterName      chapterHref  classId  classId  className  classHref -->
+        SELECT
+             tcha.chapterId,
+             tcha.chapterName,
+             tcha.chapterHref,
+             tcla.classId,
+             tcla.className,
+             tcla.classHref
+        FROM 
+            tb_chapter tcha,tb_classes tcla 
+        WHERE 
+            tcha.classId=tcla.classId
+        AND
+            tcla.classId=#{classId}
+    </select>
+    
+</mapper>

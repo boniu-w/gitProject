@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.soft863.dao.AdministerMessageMapper">
+	
+    <resultMap type="com.soft863.bean.User" id="addminMessage">
+    	<id column="uId" property="uId"/>
+    	<result column="uName" property="uName"/>
+    	<result column="uTel" property="uTel"/>
+    	<result column="uPwd" property="uPwd"/>
+    	<result column="uStatus" property="uStatus"/>
+    	<result column="uLogin" property="uLogin"/>
+    	<result column="uSpend" property="uSpend"/>
+    	<result column="uTime" property="uTime"/>
+    	<association  property="userTypeUserMap" javaType="com.soft863.bean.UserTypeUserMap">
+    		<id column="mid" property="mid"/>
+    		<result column="userid" property="userid"/>
+    		<result column="typeuserid" property="typeuserid"/>
+    		<result column="utumtime" property="utumtime"/>
+    	</association>
+    </resultMap>
+    
+    <!--  双表联查-->
+    <select id="findAllAddminiter" resultMap="addminMessage">
+    	SELECT 
+    		* 
+    	FROM 
+    		user u,
+    		usertypeusermap utm 
+    	WHERE 
+    		u.`uId`=utm.`userId` 
+    	AND 
+    		utm.`typeUserId`=1002
+    	ORDER BY 
+    		u.`uId`	
+    	DESC	
+    </select>
+    
+    <!--  删除一条 user-->
+    <delete id="deleteOneUserById">
+    	DELETE FROM USER WHERE uId=#{userId}
+    </delete>
+    
+    
+    <!--
+    	插入一条 user 
+    	keyProperty ，默认值unset，用于设置getGeneratedKeys方法或selectKey子元素返回值将赋值到领域模型的哪个属性中
+     -->
+    <insert id="addUser" parameterType="com.soft863.bean.User" useGeneratedKeys="true" keyProperty="uId">
+    	INSERT INTO USER
+    		(uname,utel,upwd)
+		VALUES
+			(#{uName},#{uTel},#{uPwd});
+    </insert>
+    
+    <!-- 
+    	把user 的 id 插入 权限表中
+     -->
+    <insert id="addToUserType">
+    	INSERT INTO usertypeusermap
+			(userid,typeuserid) 
+    	VALUES 
+    		(#{userid},1002);
+    </insert>
+    
+    <!--
+    	修改操作
+      -->
+      <update id="">
+      	UPDATE USER 
+      	SET 
+      		uname=#{uName},
+      		utel=#{uTel},
+      		upwd=#{uPwd} 
+      	WHERE 
+      		uid=#{uId}
+      </update>
+    
+    
+    
+</mapper>
